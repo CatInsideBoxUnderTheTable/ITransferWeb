@@ -12,10 +12,11 @@ resource "aws_security_group" "alb_sg" {
 
   }
 
+  // to allow for access to ECR
   egress {
-    from_port        = var.forward_traffic_to_port
-    to_port          = var.forward_traffic_to_port
-    protocol         = "tcp"
+    from_port        = 0
+    to_port          = 0
+    protocol         = "-1"
     cidr_blocks      = ["0.0.0.0/0"]
     ipv6_cidr_blocks = ["::/0"]
   }

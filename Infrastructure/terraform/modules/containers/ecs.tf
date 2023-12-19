@@ -50,9 +50,11 @@ resource "aws_ecs_service" "app" {
   launch_type     = "FARGATE"
 
   network_configuration {
-    subnets          = var.network_config.subnets_ids
-    security_groups  = var.network_config.security_groups_ids
-    assign_public_ip = false
+    subnets         = var.network_config.subnets_ids
+    security_groups = var.network_config.security_groups_ids
+    # This is necessary for Fargate tasks to have internet access. 
+    # Fargate tasks launched in a private subnet need a public IP to route traffic through a NAT gateway.
+    assign_public_ip = true
   }
 
   load_balancer {
@@ -71,6 +73,21 @@ data "aws_iam_policy_document" "task_execution_role_policy" {
       identifiers = ["ecs-tasks.amazonaws.com"]
     }
   }
+
+}
+
+
+data "aws_iam_policy_document" "task_execution_privilages" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "ecr:BatchCheckLayerAvailability",
+      "ecr:BatchGetImage",
+      "ecr:GetDownloadUrlForLayer",
+      "ecr:GetAuthorizationToken"
+    ]
+    resources = ["*"]
+  }
 }
 
 resource "aws_iam_role" "task_definition_execution_role" {
@@ -78,6 +95,11 @@ resource "aws_iam_role" "task_definition_execution_role" {
   path = "/system/api/"
 
   assume_role_policy = data.aws_iam_policy_document.task_execution_role_policy.json
+
+  inline_policy {
+    name   = "${var.solution_name}-api-task-definition-execution-role-privilages-${var.environment_name}"
+    policy = data.aws_iam_policy_document.task_execution_privilages.json
+  }
 }
 
 resource "aws_cloudwatch_log_group" "log_group" {
