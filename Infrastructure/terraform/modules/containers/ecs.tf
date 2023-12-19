@@ -1,9 +1,17 @@
 locals {
-  api_docker_image_url = module.docker_images_ecr.ecrs["api"].repository_url
-
+  api_docker_image_url = module.docker_images_ecr.urls["api"]
+  api_log_group_name   = "${var.solution_name}-logs-${var.environment_name}"
 }
-resource "aws_cloudwatch_log_group" "log_group" {
-  name = "${var.solution_name}-logs-${var.environment_name}"
+
+resource "aws_kms_key" "cloudwatch_api_log_group_key" {
+  description             = "key used for cloudtrail ${local.api_log_group_name} log group encryption"
+  deletion_window_in_days = 7
+}
+
+resource "aws_kms_alias" "cloudwatch_api_log_group_key_alias" {
+  target_key_id = aws_kms_key.cloudwatch_api_log_group_key.id
+  name          = "alias/cloudtrail-api-service-log-group-key"
+
 }
 
 resource "aws_ecs_cluster" "ecs_cluster" {
@@ -67,9 +75,14 @@ data "aws_iam_policy_document" "task_execution_role_policy" {
 
 resource "aws_iam_role" "task_definition_execution_role" {
   name = "${var.solution_name}-api-task-definition-execution-role-${var.environment_name}"
-  path = "/system/api"
+  path = "/system/api/"
 
   assume_role_policy = data.aws_iam_policy_document.task_execution_role_policy.json
+}
+
+resource "aws_cloudwatch_log_group" "log_group" {
+  name              = local.api_log_group_name
+  retention_in_days = 7
 }
 
 resource "aws_ecs_task_definition" "api_task_definition" {
@@ -78,19 +91,20 @@ resource "aws_ecs_task_definition" "api_task_definition" {
   requires_compatibilities = ["FARGATE"]
   execution_role_arn       = aws_iam_role.task_definition_execution_role.arn
 
+  //todo: move to variables
+  cpu    = 256 # Specify the CPU units (1 vCPU = 1024 units)
+  memory = 512 # Specify the memory in MiB
+
   container_definitions = jsonencode([
     {
-      name  = "api-container",
-      image = "${local.api_docker_image_url}"
-
-      cpu    = 256 # Specify the CPU units (1 vCPU = 1024 units)
-      memory = 512 # Specify the memory in MiB
+      name  = var.load_balancing.container_name
+      image = local.api_docker_image_url
 
       log_configuration = {
         log_driver = "awslogs"
 
         options = {
-          "awslogs-group"         = "/ecs/${var.solution_name}-api-task-logs"
+          "awslogs-group"         = local.api_log_group_name
           "awslogs-region"        = var.aws_region
           "awslogs-stream-prefix" = "ecs"
         }
@@ -98,8 +112,8 @@ resource "aws_ecs_task_definition" "api_task_definition" {
 
       portMappings = [
         {
-          hostPort      = var.load_balancing.application_port
-          containerPort = var.load_balancing.container_port
+          hostPort      = tonumber(var.load_balancing.application_port)
+          containerPort = tonumber(var.load_balancing.container_port)
         }
       ]
 

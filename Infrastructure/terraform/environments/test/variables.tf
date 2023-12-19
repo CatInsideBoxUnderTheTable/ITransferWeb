@@ -24,6 +24,7 @@ variable "subnets_azs" {
 }
 
 variable "email_notification_subscriber" {
-  type = string
+  type    = string
+  default = "kocham@kotki.pl"
 }
 
