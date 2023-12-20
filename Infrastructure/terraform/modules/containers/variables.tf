@@ -2,6 +2,13 @@ variable "aws_region" {
   type = string
 }
 
+variable "vpc" {
+  type = object({
+    id         = string
+    cidr_block = string
+  })
+}
+
 variable "solution_name" {
   type        = string
   description = "Allows to identify whole solution. Keep meaningfull name"
@@ -32,3 +39,21 @@ variable "load_balancing" {
     application_port     = string
   })
 }
+variable "secrets" {
+  type = object({
+    login_secret_id            = string
+    password_secret_id         = string
+    console_login_secret_id    = string
+    console_password_secret_id = string
+  })
+
+  sensitive = true
+}
+
+variable "data_storage_s3" {
+  type = object({
+    bucket_name   = string
+    bucket_region = string
+  })
+}
+

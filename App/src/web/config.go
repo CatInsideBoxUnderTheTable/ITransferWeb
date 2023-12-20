@@ -28,6 +28,7 @@ func SetupHttpServer(controllers []Controller, port string, authConfig AuthConfi
 	e := echo.New()
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
+	e.Use(middleware.BodyDump(Dump))
 	e.Use(middleware.BasicAuth(authSetupClosure))
 
 	log.Print("CONTROLLERS SETUP")
@@ -49,4 +50,8 @@ func AuthSetup(username, password string, c echo.Context, config AuthConfig) (bo
 		return true, nil
 	}
 	return false, nil
+}
+
+func Dump(c echo.Context, reqBody, resBody []byte) {
+	log.Print(c.Request().Header)
 }

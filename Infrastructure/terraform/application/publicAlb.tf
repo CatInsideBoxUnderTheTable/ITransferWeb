@@ -18,8 +18,8 @@ module "publicAlb" {
   }
 
   target_group_health_heck = {
-    interval                          = 30 // check health each 30 seconds
-    check_timeout                     = 5  // if no response received through 5 second then fail
+    interval                          = 100 // check health each XX seconds
+    check_timeout                     = 5   // if no response received through XX second then fail
     min_successes_to_mark_as_healthy  = 2
     min_failures_to_mark_as_unhealthy = 3
   }
