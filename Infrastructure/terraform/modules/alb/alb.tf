@@ -1,13 +1,19 @@
+locals {
+  alb_name = "${var.solution_name}-public-alb-${var.environment_name}"
+}
+
 resource "aws_alb" "public_alb" {
-  name               = "${var.solution_name}-public-alb-${var.environment_name}"
+  name               = local.alb_name
   internal           = false
   load_balancer_type = "application"
   subnets            = var.public_subnets_ids
+  security_groups    = [aws_security_group.alb_sg.id]
 
-  # TODO
-  # access_logs {
-  #   enabled = false
-  # }
+  access_logs {
+    bucket  = aws_s3_bucket.alb_access_logs_bucket.id
+    prefix  = "logs/alb"
+    enabled = true
+  }
 }
 
 resource "aws_alb_target_group" "api_target_group" {
@@ -23,7 +29,7 @@ resource "aws_alb_target_group" "api_target_group" {
     enabled  = true
     port     = var.forward_traffic_to_port
     protocol = "HTTP"
-    matcher  = "200-299"
+    matcher  = "200-401" # we are using basicauth. Thus 401 will tell us that our service is runing
 
     timeout             = var.target_group_health_heck.check_timeout
     interval            = var.target_group_health_heck.interval
@@ -45,8 +51,8 @@ resource "aws_alb_listener" "api_https_internet_listener" {
     type             = "forward"
     target_group_arn = aws_alb_target_group.api_target_group.arn
   }
-  certificate_arn = module.acm.acm_certificate_arn
 
+  certificate_arn = module.acm.acm_certificate_arn
 }
 
 resource "aws_alb_listener" "api_http_internet_listener" {
@@ -63,5 +69,4 @@ resource "aws_alb_listener" "api_http_internet_listener" {
       status_code = "HTTP_301"
     }
   }
-
 }

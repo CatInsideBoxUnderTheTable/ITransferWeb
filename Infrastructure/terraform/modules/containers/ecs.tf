@@ -1,6 +1,6 @@
 locals {
   api_docker_image_url = module.docker_images_ecr.urls["api"]
-  api_log_group_name   = "${var.solution_name}-logs-${var.environment_name}"
+  api_log_group_name   = "/ecs/${var.solution_name}-logs-${var.environment_name}"
 }
 
 resource "aws_kms_key" "cloudwatch_api_log_group_key" {
@@ -84,7 +84,10 @@ data "aws_iam_policy_document" "task_execution_privilages" {
       "ecr:BatchCheckLayerAvailability",
       "ecr:BatchGetImage",
       "ecr:GetDownloadUrlForLayer",
-      "ecr:GetAuthorizationToken"
+      "ecr:GetAuthorizationToken",
+      "logs:CreateLogGroup",
+      "logs:CreateLogStream",
+      "logs:PutLogEvents"
     ]
     resources = ["*"]
   }
@@ -122,12 +125,15 @@ resource "aws_ecs_task_definition" "api_task_definition" {
       name  = var.load_balancing.container_name
       image = local.api_docker_image_url
 
-      log_configuration = {
-        log_driver = "awslogs"
+      essential = true
+
+      logConfiguration = {
+        logDriver = "awslogs"
 
         options = {
           "awslogs-group"         = local.api_log_group_name
           "awslogs-region"        = var.aws_region
+          "awslogs-create-group"  = tostring(true)
           "awslogs-stream-prefix" = "ecs"
         }
       }
@@ -141,9 +147,29 @@ resource "aws_ecs_task_definition" "api_task_definition" {
 
       environment = [
         {
-          name  = "ENV_NAME",
-          value = "VAL"
-        }
+          name  = "APP_LOGIN",
+          value = data.aws_secretsmanager_secret_version.app_login.secret_string
+        },
+        {
+          name  = "APP_PASSWORD",
+          value = data.aws_secretsmanager_secret_version.app_password.secret_string
+        },
+        {
+          name  = "AWS_CONSOLE_LOGIN",
+          value = data.aws_secretsmanager_secret_version.console_login.secret_string
+        },
+        {
+          name  = "AWS_CONSOLE_KEY",
+          value = data.aws_secretsmanager_secret_version.console_password.secret_string
+        },
+        {
+          name  = "AWS_STORAGE_BUCKET_NAME",
+          value = var.data_storage_s3.bucket_name
+        },
+        {
+          name  = "AWS_STORAGE_BUCKET_REGION",
+          value = var.data_storage_s3.bucket_region
+        },
       ]
     }
   ])
