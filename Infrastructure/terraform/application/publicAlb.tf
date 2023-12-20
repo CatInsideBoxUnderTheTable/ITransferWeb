@@ -4,13 +4,16 @@ locals {
 }
 
 module "publicAlb" {
-  source = "../modules/alb"
+  source     = "../modules/alb"
+  depends_on = [module.log_bucket]
 
   solution_name    = local.solution_name
   environment_name = var.environment_name
 
   forward_traffic_to_port = local.api_port
   public_subnets_ids      = module.vpc.public_subnets_ids
+
+  logging_bucket_name = module.log_bucket.logs_bucket_name
 
   vpc = {
     id         = module.vpc.vpc_id

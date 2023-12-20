@@ -11,3 +11,6 @@ variable "bucket_object_lifetime" {
   description = "Defines how long objects stored in s3 should live. Measured in days"
 }
 
+variable "logging_bucket_name" {
+  type = string
+}

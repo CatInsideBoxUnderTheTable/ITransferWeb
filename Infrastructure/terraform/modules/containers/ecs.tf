@@ -3,17 +3,6 @@ locals {
   api_log_group_name   = "/ecs/${var.solution_name}-logs-${var.environment_name}"
 }
 
-resource "aws_kms_key" "cloudwatch_api_log_group_key" {
-  description             = "key used for cloudtrail ${local.api_log_group_name} log group encryption"
-  deletion_window_in_days = 7
-}
-
-resource "aws_kms_alias" "cloudwatch_api_log_group_key_alias" {
-  target_key_id = aws_kms_key.cloudwatch_api_log_group_key.id
-  name          = "alias/cloudtrail-api-service-log-group-key"
-
-}
-
 resource "aws_ecs_cluster" "ecs_cluster" {
   name = "${var.solution_name}-cluster-${var.environment_name}"
 
@@ -76,7 +65,6 @@ data "aws_iam_policy_document" "task_execution_role_policy" {
 
 }
 
-
 data "aws_iam_policy_document" "task_execution_privilages" {
   statement {
     effect = "Allow"
@@ -89,7 +77,7 @@ data "aws_iam_policy_document" "task_execution_privilages" {
       "logs:CreateLogStream",
       "logs:PutLogEvents"
     ]
-    resources = ["*"]
+    resources = ["arn:aws:ecr:${var.aws_region}:*", aws_cloudwatch_log_group.log_group.arn]
   }
 }
 
