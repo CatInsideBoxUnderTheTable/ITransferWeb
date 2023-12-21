@@ -8,6 +8,12 @@ resource "aws_s3_bucket" "transfer_bucket" {
   force_destroy = true
 }
 
+resource "aws_s3_bucket_logging" "logging" {
+  bucket        = aws_s3_bucket.transfer_bucket.id
+  target_bucket = var.logging_bucket_name
+  target_prefix = "transfer-bucket/"
+}
+
 resource "aws_s3_bucket_lifecycle_configuration" "transfer_bucket_lifecycle" {
   bucket = aws_s3_bucket.transfer_bucket.id
 
@@ -54,3 +60,4 @@ resource "aws_kms_alias" "transfer_bucket_encryption_key_alias" {
   name          = format("alias/%s-bucket-kms-key", local.bucket_name)
   target_key_id = aws_kms_key.transfer_bucket_encryption_key.key_id
 }
+

@@ -43,3 +43,4 @@ resource "aws_kms_alias" "terraform_state_bucket_encryption_key_alias" {
   name          = format("alias/%s-bucket-kms-key", var.state_bucket_name)
   target_key_id = aws_kms_key.terraform_state_bucket_encryption_key.key_id
 }
+

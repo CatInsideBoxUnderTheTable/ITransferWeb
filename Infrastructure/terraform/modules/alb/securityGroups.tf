@@ -3,7 +3,7 @@ resource "aws_security_group" "alb_sg" {
   vpc_id = var.vpc.id
 
   ingress {
-    description = "tcp from vpc"
+    description = "tcp from internet"
     // from port to port ---> that's range
     from_port   = 443
     to_port     = 443
@@ -12,28 +12,17 @@ resource "aws_security_group" "alb_sg" {
   }
 
   ingress {
-    description = "tcp from vpc"
+    description = "tcp from internet"
     from_port   = 80
     to_port     = 80
     protocol    = "tcp"
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  // todo: move to different security group
-  ingress {
-    description = "tcp from vpc"
-    from_port   = 9000
-    to_port     = 9000
-    protocol    = "tcp"
-    cidr_blocks = [var.vpc.cidr_block]
-
-  }
-  // to allow for access to ECR
   egress {
-    from_port        = 0
-    to_port          = 0
-    protocol         = "-1"
-    cidr_blocks      = ["0.0.0.0/0"]
-    ipv6_cidr_blocks = ["::/0"]
+    from_port   = 0
+    to_port     = 0
+    protocol    = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 }

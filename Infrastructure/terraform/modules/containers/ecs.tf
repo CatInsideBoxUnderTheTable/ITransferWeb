@@ -3,17 +3,6 @@ locals {
   api_log_group_name   = "/ecs/${var.solution_name}-logs-${var.environment_name}"
 }
 
-resource "aws_kms_key" "cloudwatch_api_log_group_key" {
-  description             = "key used for cloudtrail ${local.api_log_group_name} log group encryption"
-  deletion_window_in_days = 7
-}
-
-resource "aws_kms_alias" "cloudwatch_api_log_group_key_alias" {
-  target_key_id = aws_kms_key.cloudwatch_api_log_group_key.id
-  name          = "alias/cloudtrail-api-service-log-group-key"
-
-}
-
 resource "aws_ecs_cluster" "ecs_cluster" {
   name = "${var.solution_name}-cluster-${var.environment_name}"
 
@@ -51,7 +40,8 @@ resource "aws_ecs_service" "app" {
 
   network_configuration {
     subnets         = var.network_config.subnets_ids
-    security_groups = var.network_config.security_groups_ids
+    security_groups = [aws_security_group.ecs_sg.id]
+
     # This is necessary for Fargate tasks to have internet access. 
     # Fargate tasks launched in a private subnet need a public IP to route traffic through a NAT gateway.
     assign_public_ip = true
@@ -76,7 +66,6 @@ data "aws_iam_policy_document" "task_execution_role_policy" {
 
 }
 
-
 data "aws_iam_policy_document" "task_execution_privilages" {
   statement {
     effect = "Allow"
@@ -89,7 +78,7 @@ data "aws_iam_policy_document" "task_execution_privilages" {
       "logs:CreateLogStream",
       "logs:PutLogEvents"
     ]
-    resources = ["*"]
+    resources = ["*", aws_cloudwatch_log_group.log_group.arn]
   }
 }
 
