@@ -40,7 +40,8 @@ resource "aws_ecs_service" "app" {
 
   network_configuration {
     subnets         = var.network_config.subnets_ids
-    security_groups = var.network_config.security_groups_ids
+    security_groups = [aws_security_group.ecs_sg.id]
+
     # This is necessary for Fargate tasks to have internet access. 
     # Fargate tasks launched in a private subnet need a public IP to route traffic through a NAT gateway.
     assign_public_ip = true
@@ -77,7 +78,7 @@ data "aws_iam_policy_document" "task_execution_privilages" {
       "logs:CreateLogStream",
       "logs:PutLogEvents"
     ]
-    resources = ["arn:aws:ecr:${var.aws_region}:*", aws_cloudwatch_log_group.log_group.arn]
+    resources = ["*", aws_cloudwatch_log_group.log_group.arn]
   }
 }
 

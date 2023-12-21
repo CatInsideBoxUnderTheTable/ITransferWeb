@@ -5,8 +5,7 @@ module "containers" {
   solution_name    = local.solution_name
   aws_region       = data.aws_region.current.name
   ecs_scaling = {
-
-    desired_count = 2
+    desired_count = 1
   }
 
   vpc = {
