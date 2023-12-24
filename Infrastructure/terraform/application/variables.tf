@@ -11,3 +11,9 @@ variable "subnets_azs" {
   description = "Public availability zones where networks should be spawned"
 }
 
+variable "dns_config" {
+  type = object({
+    domain_name = string
+    dns_zone_id = string
+  })
+}

@@ -28,7 +28,7 @@ module "publicAlb" {
   }
 
   dns = {
-    domain_name    = module.dns.domain_name
-    domain_zone_id = module.dns.domain_zone_id
+    domain_name    = var.dns_config.domain_name
+    domain_zone_id = var.dns_config.dns_zone_id
   }
 }
