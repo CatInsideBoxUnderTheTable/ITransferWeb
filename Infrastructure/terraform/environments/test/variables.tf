@@ -17,14 +17,7 @@ variable "default_tags" {
   }
 }
 
-variable "subnets_azs" {
-  type        = list(string)
-  description = "Public availability zones where networks should be spawned"
-  default     = ["eu-central-1a", "eu-central-1b"]
-}
-
 variable "email_notification_subscriber" {
-  type    = string
-  default = "kocham@kotki.pl"
+  type = string
 }
 

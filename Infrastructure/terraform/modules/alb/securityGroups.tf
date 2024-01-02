@@ -1,6 +1,6 @@
 resource "aws_security_group" "alb_sg" {
-  name   = "${var.solution_name}-alb-sg-${var.environment_name}"
-  vpc_id = var.vpc.id
+  name_prefix = "alb-sg"
+  vpc_id      = var.vpc.id
 
   ingress {
     description = "tcp from internet"
@@ -24,5 +24,9 @@ resource "aws_security_group" "alb_sg" {
     to_port     = 0
     protocol    = "-1"
     cidr_blocks = ["0.0.0.0/0"]
+  }
+
+  lifecycle {
+    create_before_destroy = true
   }
 }

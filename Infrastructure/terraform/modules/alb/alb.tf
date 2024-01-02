@@ -1,9 +1,5 @@
-locals {
-  alb_name = "${var.solution_name}-public-alb-${var.environment_name}"
-}
-
 resource "aws_alb" "public_alb" {
-  name               = local.alb_name
+  name_prefix        = "pub-lb"
   internal           = false
   load_balancer_type = "application"
   subnets            = var.public_subnets_ids

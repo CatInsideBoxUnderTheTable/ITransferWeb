@@ -5,5 +5,5 @@ module "log_bucket" {
 
   environment_name                  = var.environment_name
   privileged_aws_prinipals_arns     = [data.aws_elb_service_account.this.arn]
-  privileged_service_prinipals_arns = ["delivery.logs.amazonaws.com"]
+  privileged_service_prinipals_arns = ["delivery.logs.amazonaws.com", "elasticloadbalancing.amazonaws.com"]
 }

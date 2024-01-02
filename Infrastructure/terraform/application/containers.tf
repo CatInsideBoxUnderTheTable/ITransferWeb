@@ -17,12 +17,12 @@ module "containers" {
     container_name       = "api"
     container_port       = local.api_port
     application_port     = local.api_port
-    alb_target_group_arn = module.publicAlb.api_alb_target_group_arn
+    alb_target_group_arn = module.public_alb.api_alb_target_group_arn
   }
 
   network_config = {
     subnets_ids         = module.vpc.public_subnets_ids
-    security_groups_ids = [module.publicAlb.api_alb_security_group_id]
+    security_groups_ids = [module.public_alb.api_alb_security_group_id]
   }
 
   secrets = {

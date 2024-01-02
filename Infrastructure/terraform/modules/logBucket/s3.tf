@@ -40,19 +40,7 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "bucket_encryption
 
   rule {
     apply_server_side_encryption_by_default {
-      kms_master_key_id = aws_kms_key.bucket_encryption_key.arn
-      sse_algorithm     = "aws:kms"
+      sse_algorithm = "AES256" # AWS LIMIT: https://docs.aws.amazon.com/elasticloadbalancing/latest/application/enable-access-logging.html
     }
   }
-}
-
-resource "aws_kms_key" "bucket_encryption_key" {
-  description             = "key used to encrypt bucket for state management"
-  deletion_window_in_days = 7
-  enable_key_rotation     = true
-}
-
-resource "aws_kms_alias" "encryption_key_alias" {
-  name          = "alias/log-bucket-encryption-key"
-  target_key_id = aws_kms_key.bucket_encryption_key.key_id
 }

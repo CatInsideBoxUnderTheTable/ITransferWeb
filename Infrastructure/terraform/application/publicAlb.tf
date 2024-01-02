@@ -3,7 +3,7 @@ locals {
   api_port      = 9000
 }
 
-module "publicAlb" {
+module "public_alb" {
   source     = "../modules/alb"
   depends_on = [module.log_bucket]
 
